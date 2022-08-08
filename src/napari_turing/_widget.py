@@ -22,11 +22,13 @@ if TYPE_CHECKING:
 
 from enum import Enum
 
+
 class Boundaries(Enum):
-    Closed = 'Closed'
-    Left_Right_Tube = 'LR-Tube'
-    Top_Down_Tube = 'TD-Tube'
-    Inifinite = 'Infinite'
+    Closed = "Closed"
+    Left_Right_Tube = "LR-Tube"
+    Top_Down_Tube = "TD-Tube"
+    Inifinite = "Infinite"
+
 
 class DiffusionDirection(Enum):
     Isotrope = [
@@ -83,6 +85,8 @@ class TuringViewer(QWidget):
         self.play.clicked.connect(self.play_click)
 
     def play_click(self):
+        if 1 < len(self.viewer.layers):
+            self.create_tr()
         self.play.clicked.disconnect()
         self.worker = self.play_click_worker()
         self.worker.yielded.connect(self.update_layer)
@@ -104,7 +108,6 @@ class TuringViewer(QWidget):
             self.play.clicked.connect(self.play_click)
 
     def new_run(self):
-        print(self.tr_layers)
         if hasattr(self, "worker"):
             self.worker.quit()
         else:
@@ -133,35 +136,46 @@ class TuringViewer(QWidget):
     def change_I(self):
         if not self.I_show.value:
             self.viewer.grid.enabled = False
-            if 'Inhibitor' in self.viewer.layers:
-                l = self.viewer.layers['Inhibitor']
+            if "Inhibitor" in self.viewer.layers:
+                l = self.viewer.layers["Inhibitor"]
                 self.tr_layers.remove(l)
-                self.viewer.layers.remove('Inhibitor')
+                self.viewer.layers.remove("Inhibitor")
             if not self.A_show.value:
                 self.A_show.value = True
         else:
-            if not 'Inhibitor' in self.viewer.layers:
-                self.tr_layers.append(self.viewer.add_image(
-                    self.tr.I, cache=False, name="Inhibitor", colormap="viridis", interpolation='Spline36'
-                ))
-                self.viewer.grid.enabled = 1<len(self.tr_layers)
+            if not "Inhibitor" in self.viewer.layers:
+                self.tr_layers.append(
+                    self.viewer.add_image(
+                        self.tr.I,
+                        cache=False,
+                        name="Inhibitor",
+                        colormap="viridis",
+                        interpolation="Spline36",
+                    )
+                )
+                self.viewer.grid.enabled = 1 < len(self.tr_layers)
 
     def change_A(self):
         if not self.A_show.value:
             self.viewer.grid.enabled = False
-            if 'Activator' in self.viewer.layers:
-                l = self.viewer.layers['Activator']
+            if "Activator" in self.viewer.layers:
+                l = self.viewer.layers["Activator"]
                 self.tr_layers.remove(l)
-                self.viewer.layers.remove('Activator')
+                self.viewer.layers.remove("Activator")
             if not self.I_show.value:
                 self.I_show.value = True
         else:
-            if not 'Activator' in self.viewer.layers:
-                self.tr_layers.append(self.viewer.add_image(
-                    self.tr.I, cache=False, name="Activator", colormap="viridis", interpolation='Spline36'
-                ))
-                self.viewer.grid.enabled = 1<len(self.tr_layers)
-
+            if not "Activator" in self.viewer.layers:
+                self.tr_layers.append(
+                    self.viewer.add_image(
+                        self.tr.I,
+                        cache=False,
+                        name="Activator",
+                        colormap="viridis",
+                        interpolation="Spline36",
+                    )
+                )
+                self.viewer.grid.enabled = 1 < len(self.tr_layers)
 
     @staticmethod
     def create_button(button_name):
@@ -199,14 +213,26 @@ class TuringViewer(QWidget):
     def create_tr(self):
         if hasattr(self, "tr_layers") and not self.tr_layers is None:
             for l in self.tr_layers:
-                self.viewer.layers.remove(l)
+                if l in self.viewer.layers:
+                    self.viewer.layers.remove(l)
         if self.randomize:
+            if 0 < len(self.viewer.layers):
+                if self.viewer.layers.selection.active:
+                    l = self.viewer.layers.selection.active
+                    A = l.data
+                else:
+                    l = self.viewer.layers[0]
+                    A = l.data
+                self.viewer.layers.remove(l)
+            else:
+                A = None
             self.tr = TuringPattern(
                 mu_a=self.mu_a.value * 1e-4,
                 mu_i=self.mu_i.value * 1e-3,
                 tau=self.tau.value,
                 dt=0.001,
                 k=self.k.value * 1e-3,
+                A=A,
             )
         else:
             self.tr.A = self.tr.init_A
@@ -214,14 +240,26 @@ class TuringViewer(QWidget):
         self.randomize = True
         self.tr_layers = []
         if self.A_show.value:
-            self.tr_layers.append(self.viewer.add_image(
-                                    self.tr.A, cache=False, name="Activator", colormap="viridis", interpolation='Spline36'
-                                ))
+            self.tr_layers.append(
+                self.viewer.add_image(
+                    self.tr.A,
+                    cache=False,
+                    name="Activator",
+                    colormap="viridis",
+                    interpolation="Spline36",
+                )
+            )
         if self.I_show.value:
-            self.tr_layers.append(self.viewer.add_image(
-                                    self.tr.I, cache=False, name="Inhibitor", colormap="viridis", interpolation='Spline36'
-                                ))
-        if 1<len(self.tr_layers):
+            self.tr_layers.append(
+                self.viewer.add_image(
+                    self.tr.I,
+                    cache=False,
+                    name="Inhibitor",
+                    colormap="viridis",
+                    interpolation="Spline36",
+                )
+            )
+        if 1 < len(self.tr_layers):
             self.viewer.grid.enabled = True
         for l in self.tr_layers:
             l.refresh()
@@ -243,7 +281,9 @@ class TuringViewer(QWidget):
         reset_values = self.create_button("Reset values")
         reset_values.clicked.connect(self.reset_all_values_click)
         control_w = widgets.Container(
-            widgets=[self.play, pause, stop, new_run], labels=False, layout="horizontal"
+            widgets=[self.play, pause, stop, new_run],
+            labels=False,
+            layout="horizontal",
         )
 
         self.mu_a, mu_a_w = self.create_slider(
@@ -297,31 +337,34 @@ class TuringViewer(QWidget):
             value=100,
             min=10,
             max=1000,
-            float=False
+            float=False,
         )
 
         label_display = widgets.Label(value="Concentration to display")
-        self.A_show = widgets.CheckBox(
-            value=True,
-            name='Activator'
-        )
+        self.A_show = widgets.CheckBox(value=True, name="Activator")
         self.A_show.changed.connect(self.change_A)
 
-        self.I_show = widgets.CheckBox(
-            value=False,
-            name='Inhibitor'
-        )
+        self.I_show = widgets.CheckBox(value=False, name="Inhibitor")
         self.I_show.changed.connect(self.change_I)
 
         self.randomize = True
         self.create_tr()
 
-        widget_AI = widgets.Container(widgets=[self.A_show, self.I_show], layout='horizontal')
-        widget_display = widgets.Container(widgets=[label_display, widget_AI], labels=False)
-        widget_b = widgets.Container(widgets=[label_b, self.boundaries], labels=False)
-        widget_d = widgets.Container(widgets=[label_d, self.direction], labels=False)
+        widget_AI = widgets.Container(
+            widgets=[self.A_show, self.I_show], layout="horizontal"
+        )
+        widget_display = widgets.Container(
+            widgets=[label_display, widget_AI], labels=False
+        )
+        widget_b = widgets.Container(
+            widgets=[label_b, self.boundaries], labels=False
+        )
+        widget_d = widgets.Container(
+            widgets=[label_d, self.direction], labels=False
+        )
         geometry_widget = widgets.Container(
-            widgets=[widget_display, increment_w, widget_b, widget_d], layout="vertical",
+            widgets=[widget_display, increment_w, widget_b, widget_d],
+            layout="vertical",
             labels=False,
         )
 
