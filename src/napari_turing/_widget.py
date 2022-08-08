@@ -10,7 +10,7 @@ import time
 from ._TuringPattern import TuringPattern
 from napari import Viewer
 import numpy as np
-from qtpy.QtWidgets import (QWidget, QVBoxLayout, QTabWidget, QPushButton)
+from qtpy.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QPushButton
 from magicgui import widgets
 from napari.qt.threading import thread_worker
 from functools import partial
@@ -259,6 +259,8 @@ class TuringViewer(QWidget):
                     interpolation="Spline36",
                 )
             )
+        self.tr.boundaries = self.boundaries.value.value
+        self.tr.kernel = self.direction.value.value
         if 1 < len(self.tr_layers):
             self.viewer.grid.enabled = True
         for l in self.tr_layers:
