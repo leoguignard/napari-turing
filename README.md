@@ -22,11 +22,11 @@ https://napari.org/plugins/index.html
 -->
 
 ## Installation
-<!--
+
 You can install `napari-turing` via [pip] after downloading the content of
 
     pip install napari-turing
- -->
+
 
 To install latest version :
 
@@ -36,7 +36,7 @@ To install latest version :
 
 If the installation does not work just with the previous command, it might be useful to first install [napari] for example that way:
 
-    conda install napari=0.4.16
+    conda install napari
 
 ## Contributing
 
