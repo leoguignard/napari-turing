@@ -7,7 +7,7 @@ see: https://napari.org/plugins/guides.html?#widgets
 Replace code below according to your needs.
 """
 import time
-from ._turing_pattern import TuringPattern
+from ._TuringPattern import TuringPattern
 from napari import Viewer
 import numpy as np
 from qtpy.QtWidgets import (QWidget, QVBoxLayout, QTabWidget, QPushButton)
