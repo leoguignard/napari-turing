@@ -10,7 +10,7 @@ import time
 from ._turing_pattern import TuringPattern
 from napari import Viewer
 import numpy as np
-from qtpy.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QPushButton
+from qtpy.QtWidgets import (QWidget, QVBoxLayout, QTabWidget, QPushButton)
 from magicgui import widgets
 from napari.qt.threading import thread_worker
 from functools import partial
