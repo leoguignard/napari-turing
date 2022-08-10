@@ -20,6 +20,7 @@ https://github.com/napari/cookiecutter-napari-plugin#getting-started
 and review the napari docs for plugin developers:
 https://napari.org/plugins/index.html
 -->
+![example image](img/turing_patterns.gif)
 
 ## Installation
 
