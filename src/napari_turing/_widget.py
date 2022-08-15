@@ -7,74 +7,24 @@ see: https://napari.org/plugins/guides.html?#widgets
 Replace code below according to your needs.
 """
 import time
-from ._TuringPattern import TuringPattern
-from napari import Viewer
-import numpy as np
+from ._TuringPattern import Boundaries, DiffusionDirection
+from ._model_list import AvailableModels
 from qtpy.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QPushButton
 from magicgui import widgets
 from napari.qt.threading import thread_worker
 from functools import partial
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    import napari
-
-from enum import Enum
-
-
-class Boundaries(Enum):
-    Closed = "Closed"
-    Left_Right_Tube = "LR-Tube"
-    Top_Down_Tube = "TD-Tube"
-    Inifinite = "Infinite"
-
-
-class DiffusionDirection(Enum):
-    Isotrope = [
-        [0, 1, 0],
-        [1, 0, 1],
-        [0, 1, 0],
-    ]
-    Left = [
-        [0, 1, 0],
-        [2, 0, 0],
-        [0, 1, 0],
-    ]
-    Right = [
-        [0, 1, 0],
-        [0, 0, 2],
-        [0, 1, 0],
-    ]
-    Top = [
-        [0, 2, 0],
-        [1, 0, 1],
-        [0, 0, 0],
-    ]
-    Bottom = [
-        [0, 0, 0],
-        [1, 0, 1],
-        [0, 2, 0],
-    ]
-
-
-class TuringViewer(QWidget):
+class ModelControler(QWidget):
     def update_layer(self, data):
-        for l, arr in zip(self.tr_layers, data):
-            l.data = arr
-            l.refresh()
+        self.image_layer.data = data
+        self.image_layer.refresh()
 
     @thread_worker
     def play_click_worker(self):
         while True:
             time.sleep(0.1)
             self.tr.compute_turing(self.increment.value)
-            to_yield = []
-            if self.A_show:
-                to_yield.append(self.tr.A)
-            if self.I_show:
-                to_yield.append(self.tr.I)
-            yield to_yield
+            yield self.tr[self.concentration_show.value]
 
     def clear_tr(self):
         del self.worker
@@ -115,10 +65,8 @@ class TuringViewer(QWidget):
             self.create_tr()
 
     def reset_all_values_click(self):
-        self.mu_a.value = 2.8
-        self.mu_i.value = 5
-        self.tau.value = 0.1
-        self.k.value = -5
+        for (val, _, default_val) in self.params.values():
+            val.value = default_val
         self.increment.value = 100
 
     @staticmethod
@@ -126,56 +74,22 @@ class TuringViewer(QWidget):
         slider.value = value
 
     def update_values(self):
-        self.tr.mu_a = self.mu_a.value * 1e-4
-        self.tr.mu_i = self.mu_i.value * 1e-3
-        self.tr.tau = self.tau.value
-        self.tr.k = self.k.value * 1e-3
-        self.tr.boundaries = self.boundaries.value.value
-        self.tr.kernel = self.direction.value.value
+        for name, (val, exp, _) in self.params.items():
+            self.tr[name] = val.value * exp
+        self.tr.boundaries = self.boundaries.value
+        self.tr.kernel = self.direction.value
 
-    def change_I(self):
-        if not self.I_show.value:
-            self.viewer.grid.enabled = False
-            if "Inhibitor" in self.viewer.layers:
-                l = self.viewer.layers["Inhibitor"]
-                self.tr_layers.remove(l)
-                self.viewer.layers.remove("Inhibitor")
-            if not self.A_show.value:
-                self.A_show.value = True
-        else:
-            if not "Inhibitor" in self.viewer.layers:
-                self.tr_layers.append(
-                    self.viewer.add_image(
-                        self.tr.I,
-                        cache=False,
-                        name="Inhibitor",
-                        colormap="viridis",
-                        interpolation="Spline36",
-                    )
-                )
-                self.viewer.grid.enabled = 1 < len(self.tr_layers)
-
-    def change_A(self):
-        if not self.A_show.value:
-            self.viewer.grid.enabled = False
-            if "Activator" in self.viewer.layers:
-                l = self.viewer.layers["Activator"]
-                self.tr_layers.remove(l)
-                self.viewer.layers.remove("Activator")
-            if not self.I_show.value:
-                self.I_show.value = True
-        else:
-            if not "Activator" in self.viewer.layers:
-                self.tr_layers.append(
-                    self.viewer.add_image(
-                        self.tr.I,
-                        cache=False,
-                        name="Activator",
-                        colormap="viridis",
-                        interpolation="Spline36",
-                    )
-                )
-                self.viewer.grid.enabled = 1 < len(self.tr_layers)
+    def change_display_concentration(self):
+        if "Concentration" in self.viewer.layers:
+            self.viewer.layers.remove("Concentration")
+        self.image_layer = self.viewer.add_image(
+            self.tr[self.concentration_show.value],
+            cache=False,
+            name="Concentration",
+            colormap="viridis",
+            interpolation="Spline36",
+        )
+        self.image_layer.refresh()
 
     @staticmethod
     def create_button(button_name):
@@ -211,65 +125,42 @@ class TuringViewer(QWidget):
         return slider, container
 
     def create_tr(self):
-        if hasattr(self, "tr_layers") and not self.tr_layers is None:
-            for l in self.tr_layers:
-                if l in self.viewer.layers:
-                    self.viewer.layers.remove(l)
+        if "Concentration" in self.viewer.layers:
+            self.viewer.layers.remove("Concentration")
+        concentrations = {c: None for c in self.possible_concentrations}
         if self.randomize:
             if 0 < len(self.viewer.layers):
                 if self.viewer.layers.selection.active:
                     l = self.viewer.layers.selection.active
-                    A = l.data
+                    concentrations[self.possible_concentrations[0]] = l.data
                 else:
                     l = self.viewer.layers[0]
-                    A = l.data
+                    concentrations[self.possible_concentrations[0]] = l.data
                 self.viewer.layers.remove(l)
-            else:
-                A = None
-            self.tr = TuringPattern(
-                mu_a=self.mu_a.value * 1e-4,
-                mu_i=self.mu_i.value * 1e-3,
-                tau=self.tau.value,
-                dt=0.001,
-                k=self.k.value * 1e-3,
-                A=A,
+            params = {
+                name: v[0].value * v[1] for name, v in self.params.items()
+            }
+            self.tr = self.current_model(
+                concentrations=concentrations, **params
             )
         else:
-            self.tr.A = self.tr.init_A
-            self.tr.I = self.tr.init_I
+            self.tr.reset()
         self.randomize = True
-        self.tr_layers = []
-        if self.A_show.value:
-            self.tr_layers.append(
-                self.viewer.add_image(
-                    self.tr.A,
-                    cache=False,
-                    name="Activator",
-                    colormap="viridis",
-                    interpolation="Spline36",
-                )
-            )
-        if self.I_show.value:
-            self.tr_layers.append(
-                self.viewer.add_image(
-                    self.tr.I,
-                    cache=False,
-                    name="Inhibitor",
-                    colormap="viridis",
-                    interpolation="Spline36",
-                )
-            )
-        self.tr.boundaries = self.boundaries.value.value
-        self.tr.kernel = self.direction.value.value
-        if 1 < len(self.tr_layers):
-            self.viewer.grid.enabled = True
-        for l in self.tr_layers:
+        self.image_layer = self.viewer.add_image(
+            self.tr[self.concentration_show.value],
+            cache=False,
+            name="Concentration",
+            colormap="viridis",
+            interpolation="Spline36",
+        )
+        self.tr.boundaries = self.boundaries.value
+        self.tr.kernel = self.direction.value
+        for l in self.viewer.layers:
             l.refresh()
 
-    def __init__(self, napari_viewer):
+    def __init__(self, napari_viewer, current_model):
         super().__init__()
         self.viewer = napari_viewer
-        np.random.seed(0)
         self.continue_playing = False
 
         self.play = self.create_button("Play")
@@ -288,37 +179,20 @@ class TuringViewer(QWidget):
             layout="horizontal",
         )
 
-        self.mu_a, mu_a_w = self.create_slider(
-            "Activator diffusion coefficient (10^-4)",
-            value=2.8,
-            min=1,
-            max=5,
-            change_connect=self.update_values,
-        )
+        self.current_model = current_model
 
-        self.mu_i, mu_i_w = self.create_slider(
-            "Inhibitor diffusion coefficient (10^-3)",
-            value=5,
-            min=2,
-            max=7,
-            change_connect=self.update_values,
-        )
-
-        self.tau, tau_w = self.create_slider(
-            "Reaction time ration between\nActivator and inhibitor",
-            value=0.1,
-            min=0.01,
-            max=2,
-            change_connect=self.update_values,
-        )
-
-        self.k, k_w = self.create_slider(
-            "Is the activator a source (>0), a sink (<0)\nor neutral (0), (10^-3)",
-            value=-5,
-            min=-10,
-            max=10,
-            change_connect=self.update_values,
-        )
+        self.params = {}
+        widget_params = []
+        for parameter in self.current_model._tunable_parameters:
+            p_value, w = self.create_slider(
+                parameter.description,
+                value=parameter.value,
+                min=parameter.min,
+                max=parameter.max,
+                change_connect=self.update_values,
+            )
+            self.params[parameter.name] = (p_value, parameter.exponent, parameter.value)
+            widget_params.append(w)
 
         label_b = widgets.Label(value="Boundary conditions")
         self.boundaries = widgets.RadioButtons(
@@ -343,20 +217,22 @@ class TuringViewer(QWidget):
         )
 
         label_display = widgets.Label(value="Concentration to display")
-        self.A_show = widgets.CheckBox(value=True, name="Activator")
-        self.A_show.changed.connect(self.change_A)
-
-        self.I_show = widgets.CheckBox(value=False, name="Inhibitor")
-        self.I_show.changed.connect(self.change_I)
+        self.possible_concentrations = self.current_model._concentration_names
+        self.concentration_show = widgets.ComboBox(
+            value=self.possible_concentrations[0],
+            choices=self.possible_concentrations,
+        )
+        self.concentration_show.changed.connect(
+            self.change_display_concentration
+        )
 
         self.randomize = True
         self.create_tr()
 
-        widget_AI = widgets.Container(
-            widgets=[self.A_show, self.I_show], layout="horizontal"
-        )
+        w_label = widgets.Label(value=str(self.tr))
+
         widget_display = widgets.Container(
-            widgets=[label_display, widget_AI], labels=False
+            widgets=[label_display, self.concentration_show], labels=False
         )
         widget_b = widgets.Container(
             widgets=[label_b, self.boundaries], labels=False
@@ -372,10 +248,10 @@ class TuringViewer(QWidget):
 
         w = widgets.Container(
             widgets=[
-                mu_a_w,
-                mu_i_w,
-                tau_w,
-                k_w,
+                w_label,
+            ]
+            + widget_params
+            + [
                 reset_values,
             ],
             labels=False,
@@ -394,3 +270,33 @@ class TuringViewer(QWidget):
         self.layout().addWidget(control_w.native)
         self.layout().addWidget(tab_controls)
         w.native.adjustSize()
+
+
+class TuringViewer(QWidget):
+    def change_model(self):
+        if hasattr(self, "controler"):
+            self.viewer.window.remove_dock_widget(self.controler)
+        self.controler = ModelControler(
+            self.viewer, self.model_selection.value.value
+        )
+        self.viewer.window.add_dock_widget(
+            self.controler, name=f"{self.model_selection.value.name} Controler"
+        )
+
+    def __init__(self, napari_viewer):
+        super().__init__()
+        self.viewer = napari_viewer
+        model_selection_label = widgets.Label(value="Choose the model to run")
+        self.model_selection = widgets.ComboBox(
+            value=list(AvailableModels)[0], choices=AvailableModels
+        )
+        self.model_selection.changed.connect(self.change_model)
+        self.widget = widgets.Container(
+            widgets=[model_selection_label, self.model_selection], labels=False
+        )
+        layout = QVBoxLayout()
+        layout.addStretch(1)
+        self.setLayout(layout)
+        self.layout().addWidget(self.widget.native)
+        
+        self.change_model()

@@ -85,3 +85,5 @@ venv/
 
 # Useless files
 src/napari_turing/*.png
+
+notebooks
