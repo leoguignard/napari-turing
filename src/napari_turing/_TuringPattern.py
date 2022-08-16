@@ -1,11 +1,10 @@
 from abc import abstractmethod
-from typing import Optional, Union
+from typing import Optional, Union, Dict, List, Tuple, Set
 import numpy as np
 from scipy.ndimage import convolve
 from skimage.transform import resize
 from skimage.color import rgb2gray
 from enum import Enum
-
 
 class ModelParameter:
     def __init__(
@@ -79,13 +78,13 @@ class TuringPattern:
     def _diffusion(self, c: str) -> np.ndarray:
         return self[c]
 
-    def reaction(self) -> list[np.ndarray]:
+    def reaction(self) -> List[np.ndarray]:
         dC = []
         for c in self.concentrations:
             dC.append(self._reaction(c))
         return dC
 
-    def diffusion(self) -> list[np.ndarray]:
+    def diffusion(self) -> List[np.ndarray]:
         diffC = []
         for c in self.concentrations:
             diffC.append(self._diffusion(c))
@@ -109,7 +108,7 @@ class TuringPattern:
                     del tmp
 
     @staticmethod
-    def normalizing_input_image(A, size):
+    def normalizing_input_image(A: np.ndarray, size: int):
         if len(A.shape) != 2 and not A.shape[-1] in (3, 4):
             print(f"Input images should be 2 dimensional ({A.shape=})")
             print(f"Using random distribution instead")
@@ -170,7 +169,7 @@ class TuringPattern:
         kernel: Optional[DiffusionDirection] = None,
         boundaries: Optional[Boundaries] = None,
         concentrations: Union[
-            set[str], tuple[str], list[str], dict[str, np.ndarray]
+            Set[str], Tuple[str], List[str], Dict[str, np.ndarray]
         ] = ("A", "I"),
         **kwargs,
     ):
