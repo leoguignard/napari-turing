@@ -8,6 +8,7 @@ class Brusselator(TuringPattern):
     default_dx = 1
     default_dy = 1
     default_dt = 0.01
+    default_contrast_limits=(0.3, 3.5)
 
     A = ModelParameter(
         name="A",
@@ -41,8 +42,17 @@ class Brusselator(TuringPattern):
         max=20,
         exponent=1e-1,
     )
-    _necessary_parameters = [A, B, mu_x, mu_y]
-    _tunable_parameters = [A, B, mu_x, mu_y]
+    nb_pos = ModelParameter(
+        name="nb_pos",
+        value=1,
+        min=1,
+        max=300,
+        exponent=1,
+        description="Number of random perturbations",
+        dtype=int
+    )
+    _necessary_parameters = [A, B, mu_x, mu_y, nb_pos]
+    _tunable_parameters = [A, B, mu_x, mu_y, nb_pos]
     _concentration_names = ["X", "Y"]
 
     def _reaction(self, c: str) -> np.ndarray:
@@ -64,14 +74,17 @@ class Brusselator(TuringPattern):
         return out
 
     def init_concentrations(self, C: Optional[str] = None) -> None:
+        pos = (np.random.random((2, self.nb_pos)) * self.size).astype(int)
+        values = np.random.random(self.nb_pos)
         if C == "X" or C is None:
-            self["X"] = np.random.random(
-                (self.size, self.size)
-            )
+            X = np.ones((self.size, self.size))*self.A
+            X[pos[0], pos[1]] += values
+            self["X"] = X
         if C == "Y" or C is None:
-            self["Y"] = np.random.random(
-                (self.size, self.size)
-            )
+            Y = np.ones((self.size, self.size))*self.B/self.A
+            Y[pos[0], pos[1]] -= values
+            self["Y"] = Y
+
 
     def __str__(self) -> str:
         return (

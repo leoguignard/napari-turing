@@ -15,6 +15,7 @@ class ModelParameter:
         max: float=0,
         description: str = "",
         exponent: float = 1,
+        dtype: type = float
     ) -> None:
         self.name = name
         self.min = min
@@ -22,6 +23,7 @@ class ModelParameter:
         self.max = max
         self.exponent = exponent
         self.description = description
+        self.dtype = dtype
 
 
 class DiffusionDirection(Enum):
@@ -71,6 +73,7 @@ class TuringPattern:
     _necessary_parameters = []
     _tunable_parameters = []
     _concentration_names = []
+    default_contrast_limits=None
 
     increment = ModelParameter(
         name='Increment',
@@ -181,9 +184,11 @@ class TuringPattern:
         concentrations: Union[
             Set[str], Tuple[str], List[str], Dict[str, np.ndarray]
         ] = ("A", "I"),
+        seed: int=None,
         **kwargs,
     ):
-        np.random.seed(0)
+        if seed is not None:
+            np.random.seed(seed)
         self.__dict__.update(kwargs)
         if size is not None:
             self.size = size

@@ -88,6 +88,7 @@ class ModelControler(QWidget):
             name="Concentration",
             colormap=self.current_model.default_color_map,
             interpolation=self.current_model.default_interpolation,
+            contrast_limits = self.current_model.default_contrast_limits
         )
         self.image_layer.refresh()
 
@@ -103,13 +104,13 @@ class ModelControler(QWidget):
         return btn
 
     def create_slider(
-        self, name, value, min, max, change_connect=None, float=True
+        self, name, value, min, max, change_connect=None, is_float=True, dtype=float
     ):
         label = widgets.Label(value=name)
-        if float:
-            slider = widgets.FloatSlider(value=value, min=min, max=max)
-        else:
+        if dtype is not float or not is_float:
             slider = widgets.Slider(value=value, min=min, max=max)
+        else:
+            slider = widgets.FloatSlider(value=value, min=min, max=max)
         btn = widgets.PushButton(name="Reset")
         btn.changed.connect(
             partial(self.reset_value_click, value=value, slider=slider)
@@ -152,6 +153,7 @@ class ModelControler(QWidget):
             name="Concentration",
             colormap=self.current_model.default_color_map,
             interpolation=self.current_model.default_interpolation,
+            contrast_limits = self.current_model.default_contrast_limits
         )
         self.tr.boundaries = self.boundaries.value
         self.tr.kernel = self.direction.value
@@ -190,6 +192,7 @@ class ModelControler(QWidget):
                 min=parameter.min,
                 max=parameter.max,
                 change_connect=self.update_values,
+                dtype=parameter.dtype
             )
             self.params[parameter.name] = (p_value, parameter.exponent, parameter.value)
             widget_params.append(w)
@@ -213,7 +216,7 @@ class ModelControler(QWidget):
             value=self.current_model.increment.value,
             min=self.current_model.increment.min,
             max=self.current_model.increment.max,
-            float=False,
+            is_float=False,
         )
 
         label_display = widgets.Label(value="Concentration to display")
@@ -270,6 +273,8 @@ class ModelControler(QWidget):
         self.layout().addWidget(control_w.native)
         self.layout().addWidget(tab_controls)
         w.native.adjustSize()
+        w.native.setContentsMargins(0,0,0,0)
+        self.layout().setContentsMargins(0,0,0,0)
 
 
 class TuringViewer(QWidget):
@@ -296,6 +301,8 @@ class TuringViewer(QWidget):
         )
         layout = QVBoxLayout()
         layout.addStretch(1)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0,0,0,0)
         self.setLayout(layout)
         self.layout().addWidget(self.widget.native)
         

@@ -26,7 +26,7 @@ from skimage.io import imread
 class GameOfLife(TuringPattern):
     """Here is a template to create your own Model"""
     # default_board = (imread('https://conwaylife.com/w/images/4/49/Turingmachine_large.png') == 0).astype(int)
-    default_board = np.zeros((800, 800), dtype=int)
+    default_board = np.zeros((300, 300), dtype=int)
 
     # Size of the initial grid (larger than 200 might create some latency)
     default_size = 100
@@ -104,9 +104,12 @@ class GameOfLife(TuringPattern):
     def __str__(self) -> str:
         return (
             "Game of Life rules:\n"
-            "   - Any live cell with two or three live neighbours survives.\n"
-            "   - Any dead cell with three live neighbours becomes a live cell.\n"
-            "   - All other live cells die in the next generation.\n"
+            "   - Any live cell with two or three\n"
+            "     live neighbours survives.\n"
+            "   - Any dead cell with three live\n"
+            "     neighbours becomes a live cell.\n"
+            "   - All other live cells die\n"
+            "     in the next generation.\n"
         )
 
     # Declaring the reaction-diffusion equations
