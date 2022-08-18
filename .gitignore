@@ -87,3 +87,4 @@ venv/
 src/napari_turing/*.png
 
 notebooks
+build_model.py

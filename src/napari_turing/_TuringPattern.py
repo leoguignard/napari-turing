@@ -66,9 +66,19 @@ class TuringPattern:
     default_dx = 1
     default_dy = 1
     default_size = 100
+    default_color_map = 'viridis'
+    default_interpolation = 'Spline36'
     _necessary_parameters = []
     _tunable_parameters = []
     _concentration_names = []
+
+    increment = ModelParameter(
+        name='Increment',
+        value=100,
+        min=10,
+        max=1000,
+        description="Number of steps per frame"
+    )
 
     @abstractmethod
     def _reaction(self, c: str) -> np.ndarray:

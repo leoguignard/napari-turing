@@ -36,7 +36,7 @@ class ModelTemplate(TuringPattern):
     # Time resolution
     default_dt = 1
 
-    # If your model has `nan` numbers during its
+    # If your model ends up having `nan` numbers during its
     # run, you might want to decrease any or all
     # the value of dx, dy and or dt
 

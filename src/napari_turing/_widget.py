@@ -67,7 +67,7 @@ class ModelControler(QWidget):
     def reset_all_values_click(self):
         for (val, _, default_val) in self.params.values():
             val.value = default_val
-        self.increment.value = 100
+        self.increment.value = self.current_model.increment.value
 
     @staticmethod
     def reset_value_click(value, slider):
@@ -86,8 +86,8 @@ class ModelControler(QWidget):
             self.tr[self.concentration_show.value],
             cache=False,
             name="Concentration",
-            colormap="viridis",
-            interpolation="Spline36",
+            colormap=self.current_model.default_color_map,
+            interpolation=self.current_model.default_interpolation,
         )
         self.image_layer.refresh()
 
@@ -150,8 +150,8 @@ class ModelControler(QWidget):
             self.tr[self.concentration_show.value],
             cache=False,
             name="Concentration",
-            colormap="viridis",
-            interpolation="Spline36",
+            colormap=self.current_model.default_color_map,
+            interpolation=self.current_model.default_interpolation,
         )
         self.tr.boundaries = self.boundaries.value
         self.tr.kernel = self.direction.value
@@ -209,10 +209,10 @@ class ModelControler(QWidget):
         self.direction.changed.connect(self.update_values)
 
         self.increment, increment_w = self.create_slider(
-            "Number of steps per frame",
-            value=100,
-            min=10,
-            max=1000,
+            self.current_model.increment.description,
+            value=self.current_model.increment.value,
+            min=self.current_model.increment.min,
+            max=self.current_model.increment.max,
             float=False,
         )
 
