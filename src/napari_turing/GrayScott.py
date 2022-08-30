@@ -44,7 +44,7 @@ class GrayScott(TuringPattern):
     )
     nb_pos = ModelParameter(
         name="nb_pos",
-        value=1,
+        value=5,
         min=1,
         max=300,
         exponent=1,
