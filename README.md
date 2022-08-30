@@ -70,7 +70,7 @@ Then you need to list the parameters that are necessary to run the model (usuall
     _tunable_parameters = _necessary_parameters
 ```
 
-If you want, you can specify what the method will return as a string, it will be displayed in the napari viewer ([here in the code](src/napari_turing/ModelTemplate.py#L92-L100)):
+If you want, you can specify what the method will return as a string, it will be displayed in the napari viewer ([here in the code](src/napari_turing/ModelTemplate.py#L90-L98)):
 ```python
     # This function allows to display some information about the model
     # in napari
@@ -83,7 +83,7 @@ If you want, you can specify what the method will return as a string, it will be
         )
 ```
 
-Now that the basics are declared, you will need to declare how to initialize your concentrations the following way ([here in the code](src/napari_turing/ModelTemplate.py#L100)):
+Now that the basics are declared, you will need to declare how to initialize your concentrations the following way ([here in the code](src/napari_turing/ModelTemplate.py#L100-L116)):
 ```python
     # The following allows to reset the values of the concentrations.
     # The function takes the name of the concentration to initialize.
@@ -103,7 +103,7 @@ Now that the basics are declared, you will need to declare how to initialize you
         else:
             self[C] = np.random.random((self.size, self.size)) * 2 - 1
 ```
-In the previous example, the all concentrations are initialized the same way. If you need to have different initializations, you can do it the following way for example ([from the GrayScott model](src/napari_turing/GrayScott.py#L68)):
+In the previous example, the all concentrations are initialized the same way. If you need to have different initializations, you can do it the following way for example ([from the GrayScott model](src/napari_turing/GrayScott.py#L68-L76)):
 ```python
     def init_concentrations(self, C: Optional[str] = None) -> None:
         if C == "X" or C is None:
@@ -122,7 +122,7 @@ Finally, you of course have to define the reaction equations and the diffusion e
 new_concentration = current_concentration + dt*(reaction + diffusion)
 ```
 
-Here is an example for the reaction function ([here in the code](src/napari_turing/ModelTemplate.py#L130)):
+Here is an example for the reaction function ([here in the code](src/napari_turing/ModelTemplate.py#L127-L136)):
 ```python 
     # This function defines the equations of the reactions.
     # It takes as an input which concentration to compute
@@ -137,7 +137,7 @@ Here is an example for the reaction function ([here in the code](src/napari_turi
 ```
 Of course, if you have more concentrations, you will need to define more equations.
 
-Here is an example for the reaction function ([here in the code](src/napari_turing/ModelTemplate.py#L138)):
+Here is an example for the reaction function ([here in the code](src/napari_turing/ModelTemplate.py#L138-L166)):
 ```python
     # This function defines the equations of the diffusion.
     # It takes as an input which concentration to compute
