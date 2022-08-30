@@ -36,6 +36,9 @@ class ModelTemplate(TuringPattern):
     # Time resolution
     default_dt = 1
 
+    # These are the name of the concentration tables
+    _concentration_names = ["A", "I"]
+
     # If your model ends up having `nan` numbers during its
     # run, you might want to decrease any or all
     # the value of dx, dy and or dt
@@ -83,8 +86,16 @@ class ModelTemplate(TuringPattern):
     _necessary_parameters = [tau, k, mu_a, mu_i]
     # These are the parameters that can be modified via napari
     _tunable_parameters = _necessary_parameters
-    # These are the name of the concentration tables
-    _concentration_names = ["A", "I"]
+
+    # This function allows to display some information about the model
+    # in napari
+    def __str__(self) -> str:
+        return (
+            "Equations (FitzHugh-Nagumo model):\n"
+            "  Concentration of Activator (a) and Inhibitor (i)\n"
+            "    - da/dt = mu_a * diffusion(a) + a - a^3 - i + k\n"
+            "    - tau * di/dt = mu_i * diffusion(i) + a - i"
+        )
 
     # The following allows to reset the values of the concentrations.
     # The function takes the name of the concentration to initialize.
@@ -103,16 +114,6 @@ class ModelTemplate(TuringPattern):
                 self[ci] = np.random.random((self.size, self.size)) * 2 - 1
         else:
             self[C] = np.random.random((self.size, self.size)) * 2 - 1
-
-    # This function allows to display some information about the model
-    # in napari
-    def __str__(self) -> str:
-        return (
-            "Equations (FitzHugh-Nagumo model):\n"
-            "  Concentration of Activator (a) and Inhibitor (i)\n"
-            "    - da/dt = mu_a * diffusion(a) + a - a^3 - i + k\n"
-            "    - tau * di/dt = mu_i * diffusion(i) + a - i"
-        )
 
     # Declaring the reaction-diffusion equations
     # ------------------------------------------
@@ -151,7 +152,7 @@ class ModelTemplate(TuringPattern):
             arr = self.I # Define the array of concentrations to diffuse for the reageant I
             mu = self.mu_i # Define the diffusion coefficient for the reageant I
         
-        # Computes what to is recieved from neighboring cells
+        # Computes what is recieved from neighboring cells
         from_cell = convolve(arr, self.kernel.value, mode="constant", cval=0)
         # Computes what is given to neighboring cells
         to_cell = self.nb_neighbs * arr
