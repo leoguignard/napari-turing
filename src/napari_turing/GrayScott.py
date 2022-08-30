@@ -42,7 +42,16 @@ class GrayScott(TuringPattern):
         max=5,
         exponent=1e-1,
     )
-    _necessary_parameters = [k, F, mu_x, mu_y]
+    nb_pos = ModelParameter(
+        name="nb_pos",
+        value=1,
+        min=1,
+        max=300,
+        exponent=1,
+        description="Number of random perturbations",
+        dtype=int
+    )
+    _necessary_parameters = [k, F, mu_x, mu_y, nb_pos]
     _tunable_parameters = _necessary_parameters
     _concentration_names = ["X", "Y"]
 
@@ -70,8 +79,7 @@ class GrayScott(TuringPattern):
             self["X"] = np.ones((self.size, self.size))
         if C == "Y" or C is None:
             Y = np.zeros((self.size, self.size))
-            nb_pos = 20
-            pos = (np.random.random((2, nb_pos)) * self.size).astype(int)
+            pos = (np.random.random((2, self.nb_pos)) * self.size).astype(int)
             Y[pos[0], pos[1]] = 1
             self["Y"] = Y
 
