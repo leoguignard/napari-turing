@@ -50,7 +50,7 @@ First you need to name the concentrations that you will use with the following [
     _concentration_names = ["A", "I"]
 ```
 
-Then, you need to declare its variables. For example you can create a parameter named `mu_a` the following way ([here in the code](src/napari_turing/ModelTemplate.py#L53)):
+Then, you need to declare its variables. For example you can create a parameter named `mu_a` the following way ([here in the code](src/napari_turing/ModelTemplate.py#L53-L60)):
 ```python
     mu_a = ModelParameter(
         name="mu_a",  # Name of the parameter
@@ -62,7 +62,7 @@ Then, you need to declare its variables. For example you can create a parameter 
     )
 ```
 
-Then you need to list the parameters that are necessary to run the model (usually all the paramaters declared previously) and the parameters that you will allow the user to tune (for example, sometimes some of the parameters are co-dependent and there is no point in being able to tune both of them). That should be done the following way ([here in the code](src/napari_turing/ModelTemplate.py#L86)):
+Then you need to list the parameters that are necessary to run the model (usually all the paramaters declared previously) and the parameters that you will allow the user to tune (for example, sometimes some of the parameters are co-dependent and there is no point in being able to tune both of them). That should be done the following way ([here in the code](src/napari_turing/ModelTemplate.py#L86-89)):
 ```python
     # These are the parameters that are necessary to run the equations.
     _necessary_parameters = [tau, k, mu_a, mu_i]
@@ -70,7 +70,7 @@ Then you need to list the parameters that are necessary to run the model (usuall
     _tunable_parameters = _necessary_parameters
 ```
 
-If you want, you can specify what the method will return as a string, it will be displayed in the napari viewer ([here in the code](src/napari_turing/ModelTemplate.py#L92)):
+If you want, you can specify what the method will return as a string, it will be displayed in the napari viewer ([here in the code](src/napari_turing/ModelTemplate.py#L92-L100)):
 ```python
     # This function allows to display some information about the model
     # in napari
