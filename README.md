@@ -42,16 +42,16 @@ If the installation does not work just with the previous command, it might be us
 
 ## Creating a new model
 
-To create your own model, you can use the template for models [here](src/napari_turing/ModelTemplate.py).
+To create your own model, you can use the template for models [here](src/napari_turing/Models/ModelTemplate.py).
 
 Note that a bit of knowledge in Python is probably necessary and it might not be completely trivial at first but you'll manage :)
 
-First you need to name the concentrations that you will use with the following [line](src/napari_turing/ModelTemplate.py#L40):
+First you need to name the concentrations that you will use with the following [line](src/napari_turing/Models/ModelTemplate.py#L40):
 ```python
     _concentration_names = ["A", "I"]
 ```
 
-Then, you need to declare its variables. For example you can create a parameter named `mu_a` the following way ([here in the code](src/napari_turing/ModelTemplate.py#L53-L60)):
+Then, you need to declare its variables. For example you can create a parameter named `mu_a` the following way ([here in the code](src/napari_turing/Models/ModelTemplate.py#L53-L60)):
 ```python
     mu_a = ModelParameter(
         name="mu_a",  # Name of the parameter
@@ -63,7 +63,7 @@ Then, you need to declare its variables. For example you can create a parameter 
     )
 ```
 
-Then you need to list the parameters that are necessary to run the model (usually all the paramaters declared previously) and the parameters that you will allow the user to tune (for example, sometimes some of the parameters are co-dependent and there is no point in being able to tune both of them). That should be done the following way ([here in the code](src/napari_turing/ModelTemplate.py#L86-89)):
+Then you need to list the parameters that are necessary to run the model (usually all the paramaters declared previously) and the parameters that you will allow the user to tune (for example, sometimes some of the parameters are co-dependent and there is no point in being able to tune both of them). That should be done the following way ([here in the code](src/napari_turing/Models/ModelTemplate.py#L86-89)):
 ```python
     # These are the parameters that are necessary to run the equations.
     _necessary_parameters = [tau, k, mu_a, mu_i]
@@ -71,7 +71,7 @@ Then you need to list the parameters that are necessary to run the model (usuall
     _tunable_parameters = _necessary_parameters
 ```
 
-If you want, you can specify what the method will return as a string, it will be displayed in the napari viewer ([here in the code](src/napari_turing/ModelTemplate.py#L90-L98)):
+If you want, you can specify what the method will return as a string, it will be displayed in the napari viewer ([here in the code](src/napari_turing/Models/ModelTemplate.py#L90-L98)):
 ```python
     # This function allows to display some information about the model
     # in napari
@@ -84,7 +84,7 @@ If you want, you can specify what the method will return as a string, it will be
         )
 ```
 
-Now that the basics are declared, you will need to declare how to initialize your concentrations the following way ([here in the code](src/napari_turing/ModelTemplate.py#L100-L116)):
+Now that the basics are declared, you will need to declare how to initialize your concentrations the following way ([here in the code](src/napari_turing/Models/ModelTemplate.py#L100-L116)):
 ```python
     # The following allows to reset the values of the concentrations.
     # The function takes the name of the concentration to initialize.
@@ -104,7 +104,7 @@ Now that the basics are declared, you will need to declare how to initialize you
         else:
             self[C] = np.random.random((self.size, self.size)) * 2 - 1
 ```
-In the previous example, the all concentrations are initialized the same way. If you need to have different initializations, you can do it the following way for example ([from the GrayScott model](src/napari_turing/GrayScott.py#L68-L76)):
+In the previous example, the all concentrations are initialized the same way. If you need to have different initializations, you can do it the following way for example ([from the GrayScott model](src/napari_turing/Models/GrayScott.py#L68-L76)):
 ```python
     def init_concentrations(self, C: Optional[str] = None) -> None:
         if C == "X" or C is None:
@@ -123,7 +123,7 @@ Finally, you of course have to define the reaction equations and the diffusion e
 new_concentration = current_concentration + dt*(reaction + diffusion)
 ```
 
-Here is an example for the reaction function ([here in the code](src/napari_turing/ModelTemplate.py#L127-L136)):
+Here is an example for the reaction function ([here in the code](src/napari_turing/Models/ModelTemplate.py#L127-L136)):
 ```python 
     # This function defines the equations of the reactions.
     # It takes as an input which concentration to compute
@@ -138,7 +138,7 @@ Here is an example for the reaction function ([here in the code](src/napari_turi
 ```
 Of course, if you have more concentrations, you will need to define more equations.
 
-Here is an example for the reaction function ([here in the code](src/napari_turing/ModelTemplate.py#L138-L166)):
+Here is an example for the reaction function ([here in the code](src/napari_turing/Models/ModelTemplate.py#L138-L166)):
 ```python
     # This function defines the equations of the diffusion.
     # It takes as an input which concentration to compute
@@ -173,9 +173,26 @@ Here is an example for the reaction function ([here in the code](src/napari_turi
 The diffusion function is usually a standard one so it might not be necessary to overly change it.
 
 You can find other model examples:
-- [Brusselator](src/napari_turing/Brusselator.py)
-- [GrayScott](src/napari_turing/GrayScott.py)
-- [GameOfLife](src/napari_turing/GameOfLife.py)
+- [Brusselator](src/napari_turing/Models/Brusselator.py)
+- [GrayScott](src/napari_turing/Models/GrayScott.py)
+- [GameOfLife](src/napari_turing/Models/GameOfLife.py)
+
+Once all that is done, let say you've saved your new model in the folder [Models](src/napari_turing/Models) under the name `NewModel.py` and the model class created is name `NewModel`. Then you need to declare you model in the [`_model_list.py`](src/napari_turing/Models/_model_list.py) file. To do so you need to add the following lines in the file:
+```python
+from enum import Enum
+from .FitzHughNagumo import FitzHughNagumo
+from .Brusselator import Brusselator
+from .GrayScott import GrayScott
+from .GameOfLife import GameOfLife
+from .NewModel import NewModel ## THAT LINE HERE
+
+class AvailableModels(Enum):
+    FitzHughNagumo = FitzHughNagumo
+    Brusselator = Brusselator
+    GrayScott = GrayScott
+    GameOfLife = GameOfLife
+    NewModel = NewModel ## AND THAT OTHER LINE HERE
+```
 
 ## Contributing
 

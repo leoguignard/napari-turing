@@ -7,8 +7,8 @@ see: https://napari.org/plugins/guides.html?#widgets
 Replace code below according to your needs.
 """
 import time
-from ._TuringPattern import Boundaries, DiffusionDirection
-from ._model_list import AvailableModels
+from .Models._TuringPattern import Boundaries, DiffusionDirection
+from .Models._model_list import AvailableModels
 from qtpy.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QPushButton
 from magicgui import widgets
 from napari.qt.threading import thread_worker
