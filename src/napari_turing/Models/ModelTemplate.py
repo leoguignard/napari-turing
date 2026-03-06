@@ -22,6 +22,7 @@ from scipy.ndimage import convolve
 # mu_a, k, tau, mu_i
 # We will see bellow how all these parameters are handled.
 
+
 class ModelTemplate(TuringPattern):
     """Here is a template to create your own Model"""
 
@@ -102,7 +103,7 @@ class ModelTemplate(TuringPattern):
     # If no name is given or if it is None all the concentrations are
     # reinitialized.
     #
-    # The reason why this function is useful is that some models 
+    # The reason why this function is useful is that some models
     # require specific initialisations for them to work correctly
     # In the following example the concentrations are reintinalized
     # to a random value between -1 and 1.
@@ -130,11 +131,11 @@ class ModelTemplate(TuringPattern):
     def _reaction(self, c: str) -> np.ndarray:
         if c == "A":
             # Below is the reaction part of the equation (1)
-            return self.A - self.A**3 - self.I + self.k 
+            return self.A - self.A**3 - self.I + self.k
         elif c == "I":
             # Below is the reaction part of the equation (2)
             return (self.A - self.I) / self.tau
-    
+
     # This function defines the equations of the diffusion.
     # It takes as an input which concentration to compute
     # (in this example we have to define how to compute A and I)
@@ -146,12 +147,20 @@ class ModelTemplate(TuringPattern):
     # is imbalanced according to the position of the neighbor.
     def _diffusion(self, c: str) -> np.ndarray:
         if c == "A":
-            arr = self.A # Define the array of concentrations to diffuse for the reageant A
-            mu = self.mu_a # Define the diffusion coefficient for the reageant A
+            arr = (
+                self.A
+            )  # Define the array of concentrations to diffuse for the reageant A
+            mu = (
+                self.mu_a
+            )  # Define the diffusion coefficient for the reageant A
         elif c == "I":
-            arr = self.I # Define the array of concentrations to diffuse for the reageant I
-            mu = self.mu_i # Define the diffusion coefficient for the reageant I
-        
+            arr = (
+                self.I
+            )  # Define the array of concentrations to diffuse for the reageant I
+            mu = (
+                self.mu_i
+            )  # Define the diffusion coefficient for the reageant I
+
         # Computes what is recieved from neighboring cells
         from_cell = convolve(arr, self.kernel.value, mode="constant", cval=0)
         # Computes what is given to neighboring cells

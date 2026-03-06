@@ -3,33 +3,34 @@ from scipy.ndimage import convolve
 import numpy as np
 from typing import Optional
 
+
 class Brusselator(TuringPattern):
     default_size = 200
     default_dx = 1
     default_dy = 1
     default_dt = 0.01
-    default_contrast_limits=(0.3, 3.5)
+    default_contrast_limits = (0.3, 3.5)
 
     A = ModelParameter(
         name="A",
-        value=1.,
-        min=.1,
-        max=5.,
+        value=1.0,
+        min=0.1,
+        max=5.0,
         exponent=1,
         description="Concentration of productor of x",
     )
     B = ModelParameter(
         name="B",
-        value=3.,
-        min=.1,
-        max=5.,
+        value=3.0,
+        min=0.1,
+        max=5.0,
         exponent=1,
         description="Concentration of productor of y (combined with x)",
     )
     mu_x = ModelParameter(
         name="mu_x",
-        value=2.,
-        min=.1,
+        value=2.0,
+        min=0.1,
         max=5,
         exponent=1,
         description="Diffusion coefficient of x",
@@ -37,7 +38,7 @@ class Brusselator(TuringPattern):
     mu_y = ModelParameter(
         name="mu_y",
         description="Diffusion coefficient of y (10^-1)",
-        value=2.,
+        value=2.0,
         min=0.01,
         max=20,
         exponent=1e-1,
@@ -49,7 +50,7 @@ class Brusselator(TuringPattern):
         max=300,
         exponent=1,
         description="Number of random perturbations",
-        dtype=int
+        dtype=int,
     )
     _necessary_parameters = [A, B, mu_x, mu_y, nb_pos]
     _tunable_parameters = [A, B, mu_x, mu_y, nb_pos]
@@ -77,14 +78,13 @@ class Brusselator(TuringPattern):
         pos = (np.random.random((2, self.nb_pos)) * self.size).astype(int)
         values = np.random.random(self.nb_pos)
         if C == "X" or C is None:
-            X = np.ones((self.size, self.size))*self.A
+            X = np.ones((self.size, self.size)) * self.A
             X[pos[0], pos[1]] += values
             self["X"] = X
         if C == "Y" or C is None:
-            Y = np.ones((self.size, self.size))*self.B/self.A
+            Y = np.ones((self.size, self.size)) * self.B / self.A
             Y[pos[0], pos[1]] -= values
             self["Y"] = Y
-
 
     def __str__(self) -> str:
         return (

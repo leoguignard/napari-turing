@@ -88,3 +88,6 @@ src/napari_turing/*.png
 
 notebooks
 build_model.py
+model_BMP*
+model_BSW*
+BadModel*

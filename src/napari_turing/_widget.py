@@ -6,6 +6,7 @@ see: https://napari.org/plugins/guides.html?#widgets
 
 Replace code below according to your needs.
 """
+
 import time
 from .Models._TuringPattern import Boundaries, DiffusionDirection
 from .Models._model_list import AvailableModels
@@ -13,6 +14,7 @@ from qtpy.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QPushButton
 from magicgui import widgets
 from napari.qt.threading import thread_worker
 from functools import partial
+
 
 class ModelControler(QWidget):
     def update_layer(self, data):
@@ -65,7 +67,7 @@ class ModelControler(QWidget):
             self.create_tr()
 
     def reset_all_values_click(self):
-        for (val, _, default_val) in self.params.values():
+        for val, _, default_val in self.params.values():
             val.value = default_val
         self.increment.value = self.current_model.increment.value
 
@@ -75,7 +77,8 @@ class ModelControler(QWidget):
 
     def update_values(self):
         for name, (val, exp, _) in self.params.items():
-            self.tr[name] = val.value * exp
+            if name in self.current_model._tunable_parameters:
+                self.tr[name] = val.value * exp
         self.tr.boundaries = self.boundaries.value
         self.tr.kernel = self.direction.value
 
@@ -87,8 +90,8 @@ class ModelControler(QWidget):
             cache=False,
             name="Concentration",
             colormap=self.current_model.default_color_map,
-            interpolation=self.current_model.default_interpolation,
-            contrast_limits = self.current_model.default_contrast_limits
+            interpolation2d=self.current_model.default_interpolation,
+            contrast_limits=self.current_model.default_contrast_limits,
         )
         self.image_layer.refresh()
 
@@ -104,7 +107,14 @@ class ModelControler(QWidget):
         return btn
 
     def create_slider(
-        self, name, value, min, max, change_connect=None, is_float=True, dtype=float
+        self,
+        name,
+        value,
+        min,
+        max,
+        change_connect=None,
+        is_float=True,
+        dtype=float,
     ):
         label = widgets.Label(value=name)
         if dtype is not float or not is_float:
@@ -138,9 +148,15 @@ class ModelControler(QWidget):
                     l = self.viewer.layers[0]
                     concentrations[self.possible_concentrations[0]] = l.data
                 self.viewer.layers.remove(l)
-            params = {
-                name: v[0].value * v[1] for name, v in self.params.items()
-            }
+            params = {}
+            for name, v in self.params.items():
+                if name in self.current_model._tunable_parameters:
+                    params[name] = v[0].value * v[1]
+                else:
+                    params[name] = v[2] * v[1]
+            # params = {
+            #     name: v[0].value * v[1] for name, v in self.params.items()
+            # }
             self.tr = self.current_model(
                 concentrations=concentrations, **params
             )
@@ -152,8 +168,8 @@ class ModelControler(QWidget):
             cache=False,
             name="Concentration",
             colormap=self.current_model.default_color_map,
-            interpolation=self.current_model.default_interpolation,
-            contrast_limits = self.current_model.default_contrast_limits
+            interpolation2d=self.current_model.default_interpolation,
+            contrast_limits=self.current_model.default_contrast_limits,
         )
         self.tr.boundaries = self.boundaries.value
         self.tr.kernel = self.direction.value
@@ -185,17 +201,24 @@ class ModelControler(QWidget):
 
         self.params = {}
         widget_params = []
-        for parameter in self.current_model._tunable_parameters:
-            p_value, w = self.create_slider(
-                parameter.description,
-                value=parameter.value,
-                min=parameter.min,
-                max=parameter.max,
-                change_connect=self.update_values,
-                dtype=parameter.dtype
+        for parameter in self.current_model._necessary_parameters:
+            if parameter in self.current_model._tunable_parameters:
+                p_value, w = self.create_slider(
+                    parameter.description,
+                    value=parameter.value,
+                    min=parameter.min,
+                    max=parameter.max,
+                    change_connect=self.update_values,
+                    dtype=parameter.dtype,
+                )
+                widget_params.append(w)
+            else:
+                p_value = None
+            self.params[parameter.name] = (
+                p_value,
+                parameter.exponent,
+                parameter.value,
             )
-            self.params[parameter.name] = (p_value, parameter.exponent, parameter.value)
-            widget_params.append(w)
 
         label_b = widgets.Label(value="Boundary conditions")
         self.boundaries = widgets.RadioButtons(
@@ -273,8 +296,8 @@ class ModelControler(QWidget):
         self.layout().addWidget(control_w.native)
         self.layout().addWidget(tab_controls)
         w.native.adjustSize()
-        w.native.setContentsMargins(0,0,0,0)
-        self.layout().setContentsMargins(0,0,0,0)
+        w.native.setContentsMargins(0, 0, 0, 0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
 
 class TuringViewer(QWidget):
@@ -302,8 +325,8 @@ class TuringViewer(QWidget):
         layout = QVBoxLayout()
         layout.addStretch(1)
         layout.setSpacing(0)
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.layout().addWidget(self.widget.native)
-        
+
         self.change_model()

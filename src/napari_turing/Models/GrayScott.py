@@ -8,8 +8,7 @@ class GrayScott(TuringPattern):
     default_size = 200
     default_dx = default_dy = 1
     default_dt = 1
-    
-    
+
     k = ModelParameter(
         name="k",
         description="First Parameter (k) (10^-2)",
@@ -21,7 +20,7 @@ class GrayScott(TuringPattern):
     F = ModelParameter(
         name="F",
         description="Second Parameter (F) (10^-2)",
-        value=3.,
+        value=3.0,
         min=1,
         max=10,
         exponent=1e-2,
@@ -29,7 +28,7 @@ class GrayScott(TuringPattern):
     mu_x = ModelParameter(
         name="mu_x",
         description="Diffusion coefficient of x (10^-1)",
-        value=2.,
+        value=2.0,
         min=0.1,
         max=5,
         exponent=1e-1,
@@ -37,7 +36,7 @@ class GrayScott(TuringPattern):
     mu_y = ModelParameter(
         name="mu_y",
         description="Diffusion coefficient of y (10^-1)",
-        value=1.,
+        value=1.0,
         min=0.1,
         max=5,
         exponent=1e-1,
@@ -49,12 +48,11 @@ class GrayScott(TuringPattern):
         max=300,
         exponent=1,
         description="Number of random perturbations",
-        dtype=int
+        dtype=int,
     )
     _necessary_parameters = [k, F, mu_x, mu_y, nb_pos]
     _tunable_parameters = _necessary_parameters
     _concentration_names = ["X", "Y"]
-
 
     def _reaction(self, c: str) -> np.ndarray:
         if c == "X":

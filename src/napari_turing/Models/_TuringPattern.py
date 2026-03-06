@@ -6,16 +6,17 @@ from skimage.transform import resize
 from skimage.color import rgb2gray
 from enum import Enum
 
+
 class ModelParameter:
     def __init__(
         self,
         name: str = "",
-        value: float=0,
-        min: float=0,
-        max: float=0,
+        value: float = 0,
+        min: float = 0,
+        max: float = 0,
         description: str = "",
         exponent: float = 1,
-        dtype: type = float
+        dtype: type = float,
     ) -> None:
         self.name = name
         self.min = min
@@ -68,19 +69,19 @@ class TuringPattern:
     default_dx = 1
     default_dy = 1
     default_size = 100
-    default_color_map = 'viridis'
-    default_interpolation = 'Spline36'
+    default_color_map = "viridis"
+    default_interpolation = "Spline36"
     _necessary_parameters = []
     _tunable_parameters = []
     _concentration_names = []
-    default_contrast_limits=None
+    default_contrast_limits = None
 
     increment = ModelParameter(
-        name='Increment',
+        name="Increment",
         value=100,
         min=10,
         max=1000,
-        description="Number of steps per frame"
+        description="Number of steps per frame",
     )
 
     @abstractmethod
@@ -142,9 +143,9 @@ class TuringPattern:
         return "Equation:\n" "\tNot implemented yet"
 
     def _has_necessary_attr(self):
-        missing_parameters = set([p.name for p in self._necessary_parameters]).difference(
-            self.__dict__
-        )
+        missing_parameters = set(
+            [p.name for p in self._necessary_parameters]
+        ).difference(self.__dict__)
         if len(missing_parameters) != 0:
             raise Exception(
                 f"Some parameters are missing:\n\t{missing_parameters}"
@@ -184,7 +185,7 @@ class TuringPattern:
         concentrations: Union[
             Set[str], Tuple[str], List[str], Dict[str, np.ndarray]
         ] = ("A", "I"),
-        seed: int=None,
+        seed: int = None,
         **kwargs,
     ):
         if seed is not None:

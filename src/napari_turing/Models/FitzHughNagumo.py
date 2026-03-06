@@ -46,7 +46,6 @@ class FitzHughNagumo(TuringPattern):
     _tunable_parameters = _necessary_parameters
     _concentration_names = ["A", "I"]
 
-
     def _reaction(self, c: str) -> np.ndarray:
         if c == "A":
             return self.A - self.A**3 - self.I + self.k

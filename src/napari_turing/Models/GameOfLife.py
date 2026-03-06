@@ -23,15 +23,17 @@ from skimage.io import imread
 # mu_a, k, tau, mu_i
 # We will see bellow how all these parameters are handled.
 
+
 class GameOfLife(TuringPattern):
     """Here is a template to create your own Model"""
+
     # default_board = (imread('https://conwaylife.com/w/images/4/49/Turingmachine_large.png') == 0).astype(int)
     default_board = np.zeros((300, 300), dtype=int)
 
     # Size of the initial grid (larger than 200 might create some latency)
     default_size = 100
-    default_color_map = 'gray'
-    default_interpolation = 'nearest'
+    default_color_map = "gray"
+    default_interpolation = "nearest"
 
     # Size of a pixel along the x direction
     default_dx = 1
@@ -60,11 +62,11 @@ class GameOfLife(TuringPattern):
     _concentration_names = ["Board"]
 
     increment = ModelParameter(
-        name='Increment',
+        name="Increment",
         value=1,
         min=1,
         max=5,
-        description="Number of steps per frame"
+        description="Number of steps per frame",
     )
 
     # The following allows to reset the values of the concentrations.
@@ -72,7 +74,7 @@ class GameOfLife(TuringPattern):
     # If no name is given or if it is None all the concentrations are
     # reinitialized.
     #
-    # The reason why this function is useful is that some models 
+    # The reason why this function is useful is that some models
     # require specific initialisations for them to work correctly
     # In the following example the concentrations are reintinalized
     # to a random value between -1 and 1.
@@ -84,20 +86,21 @@ class GameOfLife(TuringPattern):
                 [0, 1, 0, 1, 0, 0],
                 [1, 0, 0, 0, 0, 0],
                 [0, 1, 0, 0, 1, 0],
-                [0, 0, 0, 1, 1, 1]
-            ], dtype=int
+                [0, 0, 0, 1, 1, 1],
+            ],
+            dtype=int,
         )
         shape_init = np.array(self.default_board.shape)
         shape_im = np.array(im.shape)
-        start = shape_init//2 - shape_im//2
+        start = shape_init // 2 - shape_im // 2
         end = start + shape_im
         if C is None:
             for ci in self.concentration_names():
                 self[ci] = self.default_board
-                self[ci][start[0]:end[0], start[1]:end[1]] = im
+                self[ci][start[0] : end[0], start[1] : end[1]] = im
         else:
             self[C] = self.default_board
-            self[C][start[0]:end[0], start[1]:end[1]] = im
+            self[C][start[0] : end[0], start[1] : end[1]] = im
 
     # This function allows to display some information about the model
     # in napari
@@ -126,7 +129,7 @@ class GameOfLife(TuringPattern):
     # (in this example we have to define how to compute A and I)
     def _reaction(self, c: str) -> np.ndarray:
         return -self.Board
-    
+
     # This function defines the equations of the diffusion.
     # It takes as an input which concentration to compute
     # (in this example we have to define how to compute A and I)
@@ -137,12 +140,10 @@ class GameOfLife(TuringPattern):
     # In the case of oriented diffusion the amount recieved and given to the neighbors
     # is imbalanced according to the position of the neighbor.
     def _diffusion(self, c: str) -> np.ndarray:
-        kernel = np.array(
-            [[1, 1, 1],
-             [1, 0, 1],
-             [1, 1, 1]]
+        kernel = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
+        nb_neighbs = convolve2d(
+            self.Board, kernel, boundary="wrap", mode="same"
         )
-        nb_neighbs = convolve2d(self.Board, kernel, boundary='wrap', mode='same')
         # Checking the rules:
         #   Any live cell with two or three live neighbours survives.
         #   Any dead cell with three live neighbours becomes a live cell.
